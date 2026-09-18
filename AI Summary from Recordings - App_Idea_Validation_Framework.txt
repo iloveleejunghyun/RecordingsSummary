@@ -1,0 +1,286 @@
+﻿App Idea Validation Framework
+A disciplined process from problem discovery to Go / Pivot / Kill
+1 Problem
+	2 Hypothesis
+	3 Alternatives
+	4 Experiment
+	5 Build
+	6 Test
+	7 Decide
+	
+
+Stage 1 — Define the Problem
+Goal: Understand the problem before thinking about the solution.
+Put interesting but non-core ideas into the Backlog. They do not enter this validation cycle.
+Describe the pain without mentioning your app, features, or AI.
+Example: Something in my home is broken. I keep postponing the repair because it’s not easy to think of an easy way to fix it, while hiring a handyman for a small repair feels too expensive.
+Questions
+* Who specifically has this problem? 
+* What situation triggers the problem?
+* How often does it happen, and how painful is it?
+* What does the user do today instead?
+* Does the user already spend time or money solving it?
+* Can I explain the pain clearly without mentioning AI or my solution?
+Output
+Target user: 
+            * People who need to remember important information from meetings, conversations, interviews, lectures, or other spoken discussions.
+
+
+
+
+Problem: 
+Taking notes while actively participating is distracting and incomplete. Reviewing a long recording afterward takes too much time.
+
+
+Current workaround: 
+1.Replay the video/audio recordings and write down notes by themselves.
+2.Use apps like Summary AI with 8.99/week, 79.99/year. 50k ratings
+   Note Taker: No free days. 3 ratings
+  Otter Transcribe Voice Notes. Join meetings and share notes in the meeting! 16.99/month, 99.99/year. 70k ratings.
+
+
+
+
+
+
+Frequency / severity: 
+2 weeks a time. 
+Stage 2 — Define the Core Hypothesis
+Goal: Turn the idea into something that can be proven wrong.
+Avoid vague hypotheses such as “People will like this app.” Use a measurable behavioral statement:
+If we provide X to users with problem Y, at least Z% will perform behavior B within N days.
+Example for PiggyNotebook: People who frequently have fragmented thoughts need a way to accumulate and organize them over time. If PiggyNotebook solves this problem, at least X% of activated users will add notes on multiple separate days within the first 14 days.
+Define before building
+Core hypothesis: 
+People who regularly need notes from spoken conversations will use a simple, reliable recording + transcription + AI summary app instead of manually taking/reviewing notes
+
+
+Primary behavior: 
+Record → transcript generated → view AI summary → return for another real recording.
+
+
+Success threshold: 
+≥20% of activated users complete another real recording within 14 days.
+
+
+Failure threshold: 
+Less than 10% will reuse the app in one week.
+
+
+Measurement window:
+1 month
+Self-check
+* Is there one primary hypothesis? 
+AI could really help judge which comment is true and which is false.
+People want to get real reviews rather than just follow what the majority of people are doing (follow the ad-like recommendation in social media).
+* Is it falsifiable?
+* Have I defined success and failure numerically?
+* Am I testing user behavior rather than asking whether people “like the idea”?
+* Is the chosen metric appropriate for this product? Retention is not automatically the right metric for every app.
+Stage 3 — Study Existing Alternatives
+Goal: Understand how users solve the problem today and why an opportunity may exist.
+Do not limit the analysis to direct competitors. The alternative may be Excel, ChatGPT, WhatsApp, pen and paper, hiring someone, or simply tolerating the problem.
+Questions
+* What are the major direct competitors?
+* What substitutes do users currently use?
+* How much time or money does the current solution cost?
+* What do users repeatedly complain about?
+* Which parts of existing solutions already work well?
+* Why has an existing product not already solved this?
+* Is there a structural reason the opportunity exists now?
+* Does AI or another new technology enable something that was not practical before?
+* Is there evidence of demand: search volume, downloads, revenue, reviews, forums, or community discussions?
+Output
+Current alternatives: 
+Direct: Otter, Notta, Fireflies, Granola, Plaud, Summary AI, etc.
+Substitutes: Apple Voice Memos + manual notes, meeting platform transcripts, recording + ChatGPT, handwritten notes.
+Then capture the actual complaints you've already found: expensive subscriptions, unreliable transcription/recording, missing speaker labels, etc. Your PDF already lists some of these.
+
+
+Why would someone choose us instead of the cheapest/easiest existing alternative?
+Simple + reliable + cheaper + generous free trial.
+
+
+Main complaints: 
+No label for each different speaker.
+Process of transcript is not stable!. 25 hours. And even miss the recording!.
+No Response for customer support.
+
+
+Evidence of demand: 
+There’s over 100k ratings for other similar apps.
+
+
+Why existing solutions fail: 
+1.Too expensive.
+2.Not stable with the basic function (translation, lose part of recordings).
+
+
+Why now: 
+
+
+
+
+Stage 4 — Design the Experiment and MVP
+Goal: Build the smallest experiment capable of testing the Stage 2 hypothesis.
+Work backward: Hypothesis → behavior that proves it → experience required to produce that behavior → minimum features.
+The deletion test
+For every proposed feature, ask: If I remove this feature, can I still test the core hypothesis?
+If yes → Backlog. If no → MVP.
+AI rule
+Use AI only when it creates the capability necessary to solve the core problem. Do not add AI categorization, reminders, chat, or recommendations merely because they are easy or impressive.
+Experiment definition
+MVP features: 
+1.People could stably record the meeting/conversations and save it locally.
+2.Translate recordings into text reliably. No 24-hour uploading and failed in the middle.
+3.AI summary and correction (because transcript may not be accurate because of noise).
+
+
+Excluded / backlog features: 
+Review the conversation to improve your speaking skills.
+Interview/ sales/ public speaking review.
+
+
+Acquisition channel: 
+App Store for IOS
+
+
+Test budget: 
+1000RMB
+
+
+Target sample size: 
+100
+
+
+Primary metric: 
+Store impression → product-page view → install → first recording → successful transcript → summary viewed → second real recording
+
+
+Maximum development time: 
+10 hours.
+The success and failure thresholds are inherited from Stage 2. Do not redefine them here.
+Stage 5 — Build the MVP
+Goal: Make the experiment work; do not optimize for polish.
+Functional > polished. Prompt good enough → ship. UI good enough → ship. Architecture good enough for the experiment → ship.
+Self-check
+* Am I fixing something that prevents users from testing the hypothesis, or polishing because polishing feels productive?
+* Have I exceeded the development-time limit committed to in Stage 4?
+* Am I tuning prompts, architecture, or UI without real-user evidence that it matters?
+Stage 6 — Run the Real-World Test
+Goal: Collect behavioral evidence from real users with the minimum cost needed for meaningful data.
+The purpose is not growth yet. It is buying information.
+Evidence hierarchy
+* Weak: “Cool idea,” “I would use this,” or “The UI looks great.”
+* Stronger: Search / ad → store page → install.
+* Much stronger: Install → activation → core action.
+* Strongest: The user voluntarily repeats the core behavior, pays, or returns when the need occurs again.
+PiggyNotebook example: Install → create topic → add fragmented thoughts → return on another day → add more → use/read the accumulated AI summary.
+Rule: Do not scale acquisition before the core behavioral signal exists.
+Stage 7 — Go / Pivot / Kill
+Goal: Make the decision using the thresholds defined before seeing the data.
+GO
+The predetermined success threshold is reached. Continue improving the product, understand why users stay, improve activation/retention/monetization, and gradually increase acquisition.
+PIVOT / RETEST
+The original hypothesis failed, but the experiment revealed evidence for a different hypothesis. Formulate the new hypothesis, return to Stage 2, and run a new experiment. Do not quietly redefine success after seeing the results.
+KILL
+The failure threshold is reached and there is no strong alternative signal. Stop.
+Danger pattern: Bad data → add feature → bad data → improve AI → bad data → redesign UI → add another feature. At that point, you are protecting sunk cost rather than testing a hypothesis.
+________________
+
+
+One-Page Founder Checklist
+Before writing code, fill this out. Keep the answers short enough to review at a glance.
+Question
+	Answer / Notes
+	1. Target user
+Who specifically experiences this problem?
+	
+
+
+
+	2. Problem
+What painful thing happens today?
+	
+
+
+
+	3. Current alternative
+What do they do without my product?
+	
+
+
+
+	4. Evidence
+What evidence suggests this problem is real?
+	
+
+
+
+	5. Core hypothesis
+What exactly do I believe will happen?
+	
+
+
+
+	6. Primary behavioral metric
+What user action would demonstrate that I am right?
+	
+
+
+
+	7. Success threshold
+At what number do I continue?
+	
+
+
+
+	8. Failure threshold
+At what number do I stop?
+	
+
+
+
+	9. MVP
+What is the minimum functionality required to test this?
+	
+
+
+
+	10. Backlog
+What interesting features am I deliberately not building?
+	
+
+
+
+	11. Development limit
+How many hours/days am I willing to spend before testing?
+	
+
+
+
+	12. Test plan
+Where will users come from, how many do I need, and how much will I spend?
+	
+
+
+
+	13. Decision commitment
+If the result fails my threshold, am I genuinely willing to kill the idea?
+	
+
+
+
+	14. My likely biases
+Examples: flashy AI features, endless prompt tuning, over-polishing UI, treating downloads as validation, moving the goalposts, sunk-cost resistance.
+	
+
+
+
+	
+
+Stage Discipline
+Stage 2 defines what winning means. Stage 4 defines how you will test it. Stage 6 collects the evidence. Stage 7 only makes the decision.
+Idea Discovery — Before Stage 1
+Idea generation is separate from validation. One useful discovery lens is to scan traditional app categories and ask: “What can AI now make possible that this category could not do before?” Promising candidates then enter Stage 1; the discovery process should not change the validation rules.
+App Idea Validation Framework

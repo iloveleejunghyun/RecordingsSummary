@@ -1,0 +1,78 @@
+{
+    "name" : "TalkBrief",
+    "appid" : "__UNI__9FC40FF",
+    "description" : "Record a conversation, meeting, or lecture; get a reliable transcript and an AI summary back.",
+    "versionName" : "0.1.0",
+    "versionCode" : 1,
+    "transformPx" : false,
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueCompiler" : "uni-app",
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "nvueLaunchMode" : "fast",
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {
+            "Record" : {}
+        },
+        "distribute" : {
+            "android" : {
+                "packagename" : "com.ai12.talkbrief",
+                "targetSdkVersion" : 36,
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+                    "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>"
+                ],
+                "excludePermissions" : [
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_MEDIA_IMAGES\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_MEDIA_VIDEO\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_MEDIA_VISUAL_USER_SELECTED\"/>"
+                ]
+            },
+            "ios" : {
+                "dSYMs" : false,
+                "privacyDescription" : {
+                    "NSMicrophoneUsageDescription" : "Used to record your conversations, meetings, or lectures so they can be transcribed and summarized."
+                },
+                "CFBundleDisplayName" : "TalkBrief",
+                "CFBundleName" : "TalkBrief",
+                "plistPreferences" : {
+                    "dict" : {
+                        "ITSAppUsesNonExemptEncryption" : false
+                    }
+                },
+                "idfa" : false
+            },
+            "sdkConfigs" : {},
+            "orientation" : [ "portrait-primary" ]
+        }
+    },
+    "quickapp" : {},
+    "uniStatistics" : {
+        "enable" : true,
+        "version" : "1"
+    },
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "h5" : {
+        "router" : {
+            "mode" : "history",
+            "base" : ""
+        }
+    },
+    "vueVersion" : "3"
+}

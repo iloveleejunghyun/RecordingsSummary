@@ -1,0 +1,14 @@
+{
+  "id": "talkbrief",
+  "name": "talkbrief",
+  "displayName": "TalkBrief",
+  "version": "0.1.0",
+  "description": "Record a conversation, meeting, or lecture; get a reliable transcript and an AI summary back.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "engines": {
+    "HBuilderX": "^3.1.0"
+  }
+}

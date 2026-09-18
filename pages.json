@@ -1,0 +1,22 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/home",
+      "style": {
+        "navigationBarTitleText": "TalkBrief"
+      }
+    },
+    {
+      "path": "pages/recording-detail/recording-detail",
+      "style": {
+        "navigationBarTitleText": "Recording"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "TalkBrief",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  }
+}
