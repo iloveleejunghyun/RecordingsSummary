@@ -2,6 +2,10 @@
   <view class="page" v-if="recording">
     <text class="date">{{ formatDate(recording.createdAt) }} · {{ formatDuration(recording.durationSec) }}</text>
 
+    <view class="btn play" @click="togglePlay">
+      <text>{{ isPlaying ? '⏸ Pause' : '▶ Play Recording' }}</text>
+    </view>
+
     <view v-if="recording.status === 'transcribing' || recording.status === 'summarizing'" class="pending">
       <text>{{ recording.status === 'transcribing' ? 'Transcribing…' : 'Summarizing…' }}</text>
     </view>
@@ -44,7 +48,8 @@ export default {
       id: null,
       recording: null,
       showTranscript: false,
-      pollHandle: null
+      pollHandle: null,
+      isPlaying: false
     }
   },
   onLoad(query) {
@@ -53,6 +58,10 @@ export default {
   },
   onUnload() {
     this.stopPolling()
+    if (this._audioCtx) {
+      this._audioCtx.destroy()
+      this._audioCtx = null
+    }
   },
   methods: {
     load() {
@@ -62,11 +71,36 @@ export default {
         uni.navigateBack()
         return
       }
+      this.setupAudio()
       if (this.recording.status === 'done') {
         trackSummaryViewed()
       }
       if (PENDING_STATUSES.includes(this.recording.status)) {
         this.startPolling()
+      }
+    },
+    setupAudio() {
+      // Lets you confirm the mic actually captured sound even when a
+      // transcript comes back empty — plays the raw file directly,
+      // independent of ASR/AI results.
+      this._audioCtx = uni.createInnerAudioContext()
+      this._audioCtx.src = this.recording.audioFilePath
+      this._audioCtx.onPlay(() => { this.isPlaying = true })
+      this._audioCtx.onPause(() => { this.isPlaying = false })
+      this._audioCtx.onStop(() => { this.isPlaying = false })
+      this._audioCtx.onEnded(() => { this.isPlaying = false })
+      this._audioCtx.onError(err => {
+        this.isPlaying = false
+        uni.showToast({ title: 'Could not play recording', icon: 'none' })
+        console.error('Audio playback error:', err)
+      })
+    },
+    togglePlay() {
+      if (!this._audioCtx) return
+      if (this.isPlaying) {
+        this._audioCtx.pause()
+      } else {
+        this._audioCtx.play()
       }
     },
     startPolling() {
@@ -185,6 +219,13 @@ export default {
 .btn.primary {
   background: #F97316;
   color: #fff;
+}
+.btn.play {
+  background: #fff;
+  color: #F97316;
+  border: 2rpx solid #F97316;
+  margin-top: 0;
+  margin-bottom: 24rpx;
 }
 .btn.danger {
   background: #fff;
