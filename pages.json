@@ -3,7 +3,7 @@
     {
       "path": "pages/home/home",
       "style": {
-        "navigationBarTitleText": "TalkBrief"
+        "navigationBarTitleText": "TalkSum"
       }
     },
     {
@@ -15,7 +15,7 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "TalkBrief",
+    "navigationBarTitleText": "TalkSum",
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F5F5F5"
   }

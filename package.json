@@ -1,7 +1,7 @@
 {
-  "id": "talkbrief",
-  "name": "talkbrief",
-  "displayName": "TalkBrief",
+  "id": "talksum",
+  "name": "talksum",
+  "displayName": "TalkSum",
   "version": "0.1.0",
   "description": "Record a conversation, meeting, or lecture; get a reliable transcript and an AI summary back.",
   "scripts": {

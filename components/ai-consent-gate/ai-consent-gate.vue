@@ -3,7 +3,7 @@
     <view class="card">
       <text class="title">How AI Processing Works</text>
       <text class="body">
-        TalkBrief uses third-party AI services to turn your recordings into transcripts and summaries:
+        TalkSum uses third-party AI services to turn your recordings into transcripts and summaries:
       </text>
       <view class="vendor-list">
         <view class="vendor-item">
@@ -73,11 +73,11 @@ export default {
       })
     },
     openPrivacyPolicy() {
-      // TODO: placeholder — TalkBrief needs its own hosted privacy policy
+      // TODO: placeholder — TalkSum needs its own hosted privacy policy
       // page before App Store submission (Apple requires the URL to
       // actually resolve). Do not ship with this URL unset/broken.
       // eslint-disable-next-line no-undef
-      plus.runtime.openURL('https://talkbrief-app.example.com/privacy-policy.html')
+      plus.runtime.openURL('https://talksum-app.example.com/privacy-policy.html')
     }
   }
 }

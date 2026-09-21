@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>TalkSum Support</title>
+<style>
+  :root {
+    --orange: #F97316;
+    --orange-dark: #F2660F;
+    --text: #222;
+    --text-muted: #767676;
+    --bg: #FFF9F3;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 48px 24px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .icon {
+    width: 88px;
+    height: 88px;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(242, 102, 15, 0.25);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 8px;
+    letter-spacing: 0.5px;
+  }
+  .tagline {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin: 0 0 32px;
+    line-height: 1.6;
+  }
+  .contact-card {
+    width: 100%;
+    background: var(--card);
+    border-radius: 18px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  .contact-card h2 {
+    font-size: 16px;
+    margin: 0 0 12px;
+    text-align: left;
+  }
+  .contact-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #444;
+    margin: 0 0 16px;
+    text-align: left;
+  }
+  .mail-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(249, 115, 22, 0.35);
+  }
+  .mail-btn:active { background: var(--orange-dark); }
+  .faq {
+    width: 100%;
+    background: var(--card);
+    border-radius: 18px;
+    padding: 24px 20px;
+    text-align: left;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .faq h2 {
+    font-size: 16px;
+    margin: 0 0 16px;
+  }
+  .faq-item {
+    margin-bottom: 18px;
+  }
+  .faq-item:last-child { margin-bottom: 0; }
+  .faq-item .q {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+  .faq-item .a {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #555;
+    margin: 0;
+  }
+  .footer {
+    margin-top: 32px;
+    font-size: 12px;
+    color: #bbb;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="icon" alt="TalkSum" src="data:image/png;base64,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">
+  <h1>TalkSum Support</h1>
+  <p class="tagline">Record a conversation, meeting, or lecture — get a reliable transcript and an AI summary back</p>
+
+  <div class="contact-card">
+    <h2>Contact Us</h2>
+    <p>Running into an issue, have a suggestion, or want to report a bug? Email us and we'll get back to you as soon as we can.</p>
+    <a class="mail-btn" href="mailto:ilovejunghyun@yahoo.com?subject=TalkSum%20Feedback">Send Feedback by Email</a>
+  </div>
+
+  <div class="faq">
+    <h2>FAQ</h2>
+    <div class="faq-item">
+      <p class="q">How do I get started?</p>
+      <p class="a">Open the app and tap Record. Speak normally, then tap Stop when you're done. We'll transcribe the recording and generate a summary automatically.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">Is there a recording length limit?</p>
+      <p class="a">During this beta, recordings are capped at 5 minutes so transcription stays fast and reliable. We're working on support for longer recordings.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">Do transcription and AI summaries need an internet connection?</p>
+      <p class="a">Yes. Both speech-to-text and AI summarization rely on online services, so please stay connected. If a service is temporarily unavailable, the app will clearly show a failure with a Retry option rather than substituting fake data.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">Where is my recording data stored?</p>
+      <p class="a">Your recordings, transcripts, and summaries are stored locally on your phone and are not uploaded to a server for long-term storage. Audio and transcript content is only sent temporarily to the relevant AI service when generating a transcription or summary.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">Can I listen back to a recording?</p>
+      <p class="a">Yes — open any recording's detail screen and tap "Play Recording" to hear the original audio.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">A recording failed to transcribe or summarize — what now?</p>
+      <p class="a">Open the recording and tap "Retry." If it keeps failing, check your connection, or email us with the approximate time it happened.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">How do I delete a recording?</p>
+      <p class="a">Open the recording's detail screen and tap "Delete Recording" at the bottom. Once confirmed, it's deleted along with its audio, transcript, and summary, and cannot be undone.</p>
+    </div>
+  </div>
+
+  <div class="footer">TalkSum · Beta</div>
+</div>
+</body>
+</html>

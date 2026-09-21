@@ -1,7 +1,7 @@
 <script>
 export default {
   onLaunch() {
-    console.log('TalkBrief launched')
+    console.log('TalkSum launched')
   },
   onShow() {
     console.log('App Show')
