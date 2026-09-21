@@ -98,7 +98,11 @@ function getHeader(headers, name) {
  * Transcribe a recorded audio file (expects the AAC format this app
  * records with).
  * @param {string} filePath - local file path from uni.getRecorderManager's onStop
- * @returns {Promise<string>} the transcribed text
+ * @returns {Promise<{ text: string, utterances: Array<{ text: string, startMs: number, endMs: number, words: Array<{ text: string, startMs: number, endMs: number, confidence: number }> }> }>}
+ *   utterances/words carry Volcengine's per-word timestamps — needed later to
+ *   stitch overlapping recording chunks without splitting a sentence. Verified
+ *   against a real response (2026-09-21): the per-word field is `text`, not
+ *   `word` as some docs/summaries suggested.
  * @throws {ASRUnavailableError} when the service isn't configured or the call fails
  */
 export async function recognizeAudio(filePath) {
@@ -152,21 +156,36 @@ export async function recognizeAudio(filePath) {
   // not a service failure, so it shouldn't throw. Anything else is a real
   // error (bad auth, malformed request, server issue, etc).
   const NON_FATAL_EMPTY_CODES = ['20000003']
+  const EMPTY_RESULT = { text: '', utterances: [] }
   if (apiStatusCode !== '20000000') {
     if (NON_FATAL_EMPTY_CODES.includes(apiStatusCode)) {
-      return ''
+      return EMPTY_RESULT
     }
     const message = getHeader(res.header, 'x-api-message') || 'recognition failed'
     throw new ASRUnavailableError(`ASR API error ${apiStatusCode}: ${message}`)
   }
 
-  const text = res.data && res.data.result && res.data.result.text
+  const result = res.data && res.data.result
+  const text = result && result.text
   if (!text) {
     // Not necessarily an error — could just be silence/noise. Let the
     // caller decide how to handle "nothing was said" rather than guessing.
-    return ''
+    return EMPTY_RESULT
   }
-  return text
+
+  const utterances = (result.utterances || []).map(u => ({
+    text: u.text,
+    startMs: u.start_time,
+    endMs: u.end_time,
+    words: (u.words || []).map(w => ({
+      text: w.text,
+      startMs: w.start_time,
+      endMs: w.end_time,
+      confidence: w.confidence
+    }))
+  }))
+
+  return { text, utterances }
 }
 
 export { ASRUnavailableError }

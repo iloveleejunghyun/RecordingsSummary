@@ -43,6 +43,7 @@ export function createRecording({ id, audioFilePath, durationSec }) {
     status: 'transcribing', // 'transcribing' | 'summarizing' | 'done' | 'failed'
     failureStage: null,     // 'asr' | 'summary' | null
     transcript: '',
+    utterances: [], // per-word ASR timestamps, once transcribed — see services/asr.js
     summary: ''
   }
   recordings.unshift(recording)

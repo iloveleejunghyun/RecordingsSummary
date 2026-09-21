@@ -25,8 +25,12 @@ export async function runTranscriptionAndSummary(id, audioFilePath, { fromStage 
   if (fromStage === 'asr') {
     updateRecording(id, { status: 'transcribing', failureStage: null })
     try {
-      transcript = await recognizeAudio(audioFilePath)
-      updateRecording(id, { transcript, status: 'summarizing', failureStage: null })
+      const result = await recognizeAudio(audioFilePath)
+      transcript = result.text
+      // utterances (per-word timestamps) aren't used yet, but are stored now
+      // since chunk-overlap-stitching (splitting long recordings without
+      // cutting a sentence in half) will need them.
+      updateRecording(id, { transcript, utterances: result.utterances, status: 'summarizing', failureStage: null })
       trackTranscriptionResult({ success: true })
     } catch (e) {
       updateRecording(id, { status: 'failed', failureStage: 'asr' })

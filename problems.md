@@ -1,4 +1,6 @@
-Couldn't run the app on a real ios device in debug mode.
+
+
+Couldn't run the app on a real ios device in debug mode.V
 	Couldn't do that even with PiggyNotebook.
 	Update HBuilder.
 	Certificate expired.
