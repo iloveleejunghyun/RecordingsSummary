@@ -3,11 +3,11 @@
     <ai-consent-gate />
 
     <view class="record-area">
-      <view class="timer" v-if="isRecording">{{ formatDuration(elapsedSec) }} / {{ formatDuration(CAP_SEC) }}</view>
+      <view class="timer" v-if="isRecording">{{ formatDuration(elapsedSec) }} / {{ formatDuration(MAX_SESSION_SEC) }}</view>
       <view class="record-btn" :class="{ recording: isRecording }" @click="toggleRecording">
         <text>{{ isRecording ? 'Stop' : 'Record' }}</text>
       </view>
-      <text class="cap-note" v-if="!isRecording">Beta limit: recordings up to {{ CAP_SEC / 60 }} minutes</text>
+      <text class="cap-note" v-if="!isRecording">Beta limit: recordings up to {{ MAX_SESSION_SEC / 60 }} minutes</text>
     </view>
 
     <view class="list">
@@ -25,15 +25,23 @@
 
 <script>
 import AiConsentGate from '@/components/ai-consent-gate/ai-consent-gate.vue'
-import { setRecorderHandlers, startRecording, stopRecording } from '@/utils/recorder.js'
+import { setRecorderHandlers, startRecording, stopRecording, allowScreenLock } from '@/utils/recorder.js'
 import { saveAudioPermanently } from '@/utils/audioStore.js'
-import { getRecordings, createRecording, getAIConsent } from '@/utils/storage.js'
+import { getRecordings, createRecording, addSegment, getAIConsent } from '@/utils/storage.js'
 import { uid } from '@/utils/id.js'
-import { runTranscriptionAndSummary } from '@/utils/pipeline.js'
+import { transcribeSegment, finishRecordingSession } from '@/utils/pipeline.js'
 import { trackRecordingCompleted } from '@/utils/analytics.js'
 
-const CAP_SEC = 300 // Build-1 hard cap — see services/asr.js for why (single inline-base64 ASR request)
-const PENDING_STATUSES = ['transcribing', 'summarizing']
+// A recording is captured as a sequence of ~1 minute segments rather than
+// one long file — uni's RecorderManager can only run one recording at a
+// time with no way to peek at it mid-session (see services/asr.js and
+// utils/storage.js's file comments for why), so long recordings are built
+// by calling stop() then immediately start() again, over and over, each
+// cycle producing one complete, independently-uploadable segment file.
+const SEGMENT_SEC = 5      // rotate to a new segment file roughly this often
+const MAX_SESSION_SEC = 1800 // 30 min safety cap on total recording length
+const RECORDER_OPTIONS = { format: 'aac', sampleRate: 16000, encodeBitRate: 96000 }
+const PENDING_STATUSES = ['recording', 'transcribing', 'summarizing']
 
 export default {
   components: { AiConsentGate },
@@ -42,7 +50,7 @@ export default {
       isRecording: false,
       elapsedSec: 0,
       recordings: [],
-      CAP_SEC,
+      MAX_SESSION_SEC,
       timerHandle: null,
       pollHandle: null
     }
@@ -91,49 +99,99 @@ export default {
         return
       }
       if (this.isRecording) {
+        this._userStopped = true
         stopRecording()
       } else {
-        startRecording({ format: 'aac', sampleRate: 16000, encodeBitRate: 96000 })
+        this._recordingId = uid()
+        this._userStopped = false
+        this._segmentElapsedSec = 0
+        createRecording({ id: this._recordingId })
+        this.loadRecordings()
+        startRecording(RECORDER_OPTIONS)
       }
     },
     onRecorderStart() {
       this.isRecording = true
-      this.elapsedSec = 0
-      this.timerHandle = setInterval(() => {
-        this.elapsedSec += 1
-        if (this.elapsedSec >= CAP_SEC) {
-          stopRecording()
-        }
-      }, 1000)
+      this._segmentElapsedSec = 0
+      if (!this.timerHandle) {
+        // Only reset the display timer on the very first segment of a
+        // session — onRecorderStart also fires again after every
+        // stop()+start() rotation, and elapsedSec should keep counting
+        // across the whole session, not reset each time.
+        this.elapsedSec = 0
+        this.timerHandle = setInterval(this.onTimerTick, 1000)
+      }
+    },
+    onTimerTick() {
+      this.elapsedSec += 1
+      this._segmentElapsedSec += 1
+      if (this.elapsedSec >= MAX_SESSION_SEC) {
+        this._userStopped = true
+        stopRecording()
+      } else if (this._segmentElapsedSec >= SEGMENT_SEC) {
+        // Not a real stop — this rotates to a new segment file. See
+        // onRecorderStop, which immediately restarts recording when
+        // _userStopped is false.
+        stopRecording()
+      }
     },
     async onRecorderStop(res) {
-      this.stopTimer()
-      this.isRecording = false
+      const recordingId = this._recordingId
+      const userStopped = this._userStopped
+      const durationSec = res && res.duration ? Math.round(res.duration / 1000) : this._segmentElapsedSec
 
-      const durationSec = res && res.duration ? Math.round(res.duration / 1000) : this.elapsedSec
-      if (!res || !res.tempFilePath || durationSec < 1) {
-        return // accidental tap — nothing worth saving
+      if (userStopped) {
+        this.stopTimer()
+        this.isRecording = false
+        allowScreenLock()
       }
 
-      const id = uid()
-      let audioFilePath
-      try {
-        audioFilePath = await saveAudioPermanently(res.tempFilePath, id)
-      } catch (e) {
-        uni.showToast({ title: 'Could not save recording', icon: 'none' })
+      if (!res || !res.tempFilePath || durationSec < 1) {
+        // Nothing usable in this segment (e.g. the user tapped Stop right
+        // as a rotation happened to fire). If it was a rotation, just keep
+        // recording; if it was the real stop, finalize whatever segments
+        // already came in.
+        if (userStopped) {
+          await finishRecordingSession(recordingId)
+          this.loadRecordings()
+        } else {
+          startRecording(RECORDER_OPTIONS)
+        }
         return
       }
 
-      createRecording({ id, audioFilePath, durationSec })
-      this.loadRecordings()
-      trackRecordingCompleted({ durationSec, hitCap: durationSec >= CAP_SEC })
-      this.maybeStartPolling()
+      if (!userStopped) {
+        // Restart recording as the very first thing, before any file I/O —
+        // saveAudioPermanently below does real async disk work (resolve +
+        // copy via plus.io), which was previously running *before* this
+        // call and adding its latency directly to the gap between segments.
+        startRecording(RECORDER_OPTIONS)
+      }
 
-      runTranscriptionAndSummary(id, audioFilePath)
+      let audioFilePath = null
+      try {
+        audioFilePath = await saveAudioPermanently(res.tempFilePath, uid())
+      } catch (e) {
+        uni.showToast({ title: 'Could not save a recording segment', icon: 'none' })
+      }
+
+      if (audioFilePath) {
+        const segment = addSegment(recordingId, { audioFilePath, durationSec })
+        this.loadRecordings()
+        this.maybeStartPolling()
+        transcribeSegment(recordingId, segment)
+      }
+
+      if (userStopped) {
+        trackRecordingCompleted({ durationSec: this.elapsedSec, hitCap: this.elapsedSec >= MAX_SESSION_SEC })
+        await finishRecordingSession(recordingId)
+        this.loadRecordings()
+      }
     },
     onRecorderError(err) {
       this.stopTimer()
       this.isRecording = false
+      allowScreenLock()
       uni.showToast({ title: 'Recording failed', icon: 'none' })
       console.error('Recorder error:', err)
     },
@@ -157,6 +215,7 @@ export default {
     },
     statusLabel(r) {
       switch (r.status) {
+        case 'recording': return 'Recording…'
         case 'transcribing': return 'Transcribing…'
         case 'summarizing': return 'Summarizing…'
         case 'done': return 'Done'

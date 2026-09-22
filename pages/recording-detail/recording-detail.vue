@@ -2,11 +2,15 @@
   <view class="page" v-if="recording">
     <text class="date">{{ formatDate(recording.createdAt) }} · {{ formatDuration(recording.durationSec) }}</text>
 
-    <view class="btn play" @click="togglePlay">
+    <view v-if="recording.segments && recording.segments.length > 0" class="btn play" @click="togglePlay">
       <text>{{ isPlaying ? '⏸ Pause' : '▶ Play Recording' }}</text>
     </view>
 
-    <view v-if="recording.status === 'transcribing' || recording.status === 'summarizing'" class="pending">
+    <view v-if="recording.status === 'recording'" class="pending">
+      <text>Recording…</text>
+    </view>
+
+    <view v-else-if="recording.status === 'transcribing' || recording.status === 'summarizing'" class="pending">
       <text>{{ recording.status === 'transcribing' ? 'Transcribing…' : 'Summarizing…' }}</text>
     </view>
 
@@ -37,10 +41,10 @@
 <script>
 import { getRecordingById, deleteRecording } from '@/utils/storage.js'
 import { deleteAudioFile } from '@/utils/audioStore.js'
-import { runTranscriptionAndSummary } from '@/utils/pipeline.js'
+import { retryRecording } from '@/utils/pipeline.js'
 import { trackSummaryViewed } from '@/utils/analytics.js'
 
-const PENDING_STATUSES = ['transcribing', 'summarizing']
+const PENDING_STATUSES = ['recording', 'transcribing', 'summarizing']
 
 export default {
   data() {
@@ -71,7 +75,8 @@ export default {
         uni.navigateBack()
         return
       }
-      this.setupAudio()
+      this.refreshSegmentPaths()
+      if (!this._audioCtx) this.setupAudio()
       if (this.recording.status === 'done') {
         trackSummaryViewed()
       }
@@ -79,16 +84,32 @@ export default {
         this.startPolling()
       }
     },
+    // A recording is made of one or more segment files (see
+    // utils/storage.js's file comment) — keep the flat list of paths used
+    // for sequential playback in sync whenever `recording` is (re)loaded.
+    refreshSegmentPaths() {
+      this._segmentPaths = (this.recording.segments || []).map(s => s.audioFilePath)
+    },
     setupAudio() {
       // Lets you confirm the mic actually captured sound even when a
-      // transcript comes back empty — plays the raw file directly,
-      // independent of ASR/AI results.
+      // transcript comes back empty — plays the raw segment files
+      // directly, independent of ASR/AI results. Segments play back to
+      // back in order, advancing automatically as each one ends.
+      this._segmentIndex = 0
       this._audioCtx = uni.createInnerAudioContext()
-      this._audioCtx.src = this.recording.audioFilePath
       this._audioCtx.onPlay(() => { this.isPlaying = true })
       this._audioCtx.onPause(() => { this.isPlaying = false })
       this._audioCtx.onStop(() => { this.isPlaying = false })
-      this._audioCtx.onEnded(() => { this.isPlaying = false })
+      this._audioCtx.onEnded(() => {
+        this._segmentIndex += 1
+        if (this._segmentIndex < this._segmentPaths.length) {
+          this._audioCtx.src = this._segmentPaths[this._segmentIndex]
+          this._audioCtx.play()
+        } else {
+          this.isPlaying = false
+          this._segmentIndex = 0
+        }
+      })
       this._audioCtx.onError(err => {
         this.isPlaying = false
         uni.showToast({ title: 'Could not play recording', icon: 'none' })
@@ -96,10 +117,13 @@ export default {
       })
     },
     togglePlay() {
-      if (!this._audioCtx) return
+      if (!this._audioCtx || this._segmentPaths.length === 0) return
       if (this.isPlaying) {
         this._audioCtx.pause()
       } else {
+        if (!this._audioCtx.src) {
+          this._audioCtx.src = this._segmentPaths[this._segmentIndex]
+        }
         this._audioCtx.play()
       }
     },
@@ -107,9 +131,14 @@ export default {
       if (this.pollHandle) return
       this.pollHandle = setInterval(() => {
         this.recording = getRecordingById(this.id)
-        if (!this.recording || !PENDING_STATUSES.includes(this.recording.status)) {
+        if (!this.recording) {
           this.stopPolling()
-          if (this.recording && this.recording.status === 'done') {
+          return
+        }
+        this.refreshSegmentPaths()
+        if (!PENDING_STATUSES.includes(this.recording.status)) {
+          this.stopPolling()
+          if (this.recording.status === 'done') {
             trackSummaryViewed()
           }
         }
@@ -122,11 +151,7 @@ export default {
       }
     },
     retry() {
-      const fromStage = this.recording.failureStage === 'summary' ? 'summary' : 'asr'
-      runTranscriptionAndSummary(this.id, this.recording.audioFilePath, {
-        fromStage,
-        existingTranscript: this.recording.transcript
-      })
+      retryRecording(this.id)
       this.recording = getRecordingById(this.id) // pick up the immediate status flip
       this.startPolling()
     },
@@ -136,7 +161,7 @@ export default {
         content: 'This cannot be undone.',
         success: res => {
           if (!res.confirm) return
-          deleteAudioFile(this.recording.audioFilePath)
+          this._segmentPaths.forEach(deleteAudioFile)
           deleteRecording(this.id)
           uni.navigateBack()
         }

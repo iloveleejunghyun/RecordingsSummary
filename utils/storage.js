@@ -2,6 +2,16 @@
 // uni-storage key as a JSON blob — data volume during validation is tiny
 // (a handful of recordings per user), so this is simpler than reaching for
 // plus.sqlite right now.
+//
+// A recording is made of one or more SEGMENTS — since uni's RecorderManager
+// can only run one recording at a time with no way to peek at it mid-session
+// (see services/asr.js's file comment), long recordings are captured as a
+// sequence of ~60s files (utils/recorder.js stop()+start() back to back)
+// rather than one giant file. Each segment is transcribed independently and
+// retried independently; the recording's overall `transcript` is the
+// segments' transcripts joined in order once all of them succeed.
+
+import { uid } from './id.js'
 
 const RECORDINGS_KEY = 'rc_recordings'
 const AI_CONSENT_KEY = 'rc_ai_consent_given'
@@ -25,25 +35,22 @@ export function getRecordingById(id) {
 }
 
 /**
- * Create a new recording entry right after the audio file is saved
- * permanently, before transcription/summarization have run. The id is
- * caller-supplied (see utils/id.js) because it's also used as the audio
- * file's permanent filename — both need to agree on the same id.
- * @param {{ id: string, audioFilePath: string, durationSec: number }} info
+ * Start a new recording session, before any audio has been captured yet.
+ * Segments are added one at a time as they're recorded (see addSegment).
+ * @param {{ id: string }} info - id is caller-supplied (utils/id.js)
  * @returns {object} the created recording
  */
-export function createRecording({ id, audioFilePath, durationSec }) {
+export function createRecording({ id }) {
   const recordings = getRecordings()
   const recording = {
     id,
     createdAt: nowISO(),
     updatedAt: nowISO(),
-    durationSec,
-    audioFilePath,
-    status: 'transcribing', // 'transcribing' | 'summarizing' | 'done' | 'failed'
-    failureStage: null,     // 'asr' | 'summary' | null
+    durationSec: 0,
+    segments: [],
+    status: 'recording', // 'recording' | 'transcribing' | 'summarizing' | 'done' | 'failed'
+    failureStage: null,  // 'asr' | 'summary' | null
     transcript: '',
-    utterances: [], // per-word ASR timestamps, once transcribed — see services/asr.js
     summary: ''
   }
   recordings.unshift(recording)
@@ -52,8 +59,53 @@ export function createRecording({ id, audioFilePath, durationSec }) {
 }
 
 /**
- * Merge a patch into an existing recording (e.g. transcript arrives, status
- * changes, summary arrives, or a failure is recorded) and bump updatedAt.
+ * Append a newly-recorded segment to a recording, right after its audio
+ * file is saved permanently, before it's been transcribed.
+ * @param {string} recordingId
+ * @param {{ audioFilePath: string, durationSec: number }} info
+ * @returns {object|null} the created segment (with its id), or null if the recording isn't found
+ */
+export function addSegment(recordingId, { audioFilePath, durationSec }) {
+  const recordings = getRecordings()
+  const recording = recordings.find(r => r.id === recordingId)
+  if (!recording) return null
+  const segment = {
+    id: uid(),
+    audioFilePath,
+    durationSec,
+    status: 'transcribing', // 'transcribing' | 'done' | 'failed'
+    transcript: '',
+    utterances: []
+  }
+  recording.segments.push(segment)
+  recording.durationSec += durationSec
+  recording.updatedAt = nowISO()
+  saveRecordings(recordings)
+  return segment
+}
+
+/**
+ * Merge a patch into one segment of a recording (transcript arrives, or it
+ * fails) and bump the recording's updatedAt.
+ * @param {string} recordingId
+ * @param {string} segmentId
+ * @param {object} patch
+ */
+export function updateSegment(recordingId, segmentId, patch) {
+  const recordings = getRecordings()
+  const recording = recordings.find(r => r.id === recordingId)
+  if (!recording) return null
+  const segment = recording.segments.find(s => s.id === segmentId)
+  if (!segment) return null
+  Object.assign(segment, patch)
+  recording.updatedAt = nowISO()
+  saveRecordings(recordings)
+  return segment
+}
+
+/**
+ * Merge a patch into an existing recording's own fields (overall status,
+ * concatenated transcript, summary, or a failure) and bump updatedAt.
  * @param {string} id
  * @param {object} patch
  * @returns {object|null} the updated recording, or null if not found

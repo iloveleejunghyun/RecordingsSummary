@@ -23,6 +23,16 @@
 // presses the lock button or backgrounds the app — that needs OS-level
 // background-audio support (iOS UIBackgroundModes, Android foreground
 // service), which this app does not have yet.
+//
+// Long recordings are captured as a sequence of segments (see
+// utils/storage.js), so stop()+start() happen repeatedly, back to back,
+// throughout one logical session — NOT just once at the very end. onStop
+// deliberately does NOT turn keepScreenOn back off, since 9 times out of 10
+// it's immediately followed by another start() (the next segment), and
+// toggling it off-then-on-again on every single rotation was pure wasted
+// round-trips through the native bridge sitting right in the gap between
+// segments. The caller is responsible for turning it off once it knows
+// there's no next segment coming (see pages/home/home.vue's real-stop path).
 
 let recorderManager = null
 let currentHandlers = { onStart: null, onStop: null, onError: null }
@@ -34,11 +44,6 @@ function ensureInitialized() {
     if (currentHandlers.onStart) currentHandlers.onStart()
   })
   recorderManager.onStop(res => {
-    try {
-      uni.setKeepScreenOn({ keepScreenOn: false })
-    } catch (e) {
-      // Non-fatal — worst case the screen just stays on a bit longer.
-    }
     if (currentHandlers.onStop) currentHandlers.onStop(res)
   })
   recorderManager.onError(err => {
@@ -70,6 +75,19 @@ export function startRecording(options) {
     // Non-fatal — recording still works, screen may just auto-lock.
   }
   recorderManager.start(options)
+}
+
+/**
+ * Call once the caller knows there's no next segment coming — a real user
+ * stop, not a rotation. See the file-level comment above for why this isn't
+ * done automatically inside onStop.
+ */
+export function allowScreenLock() {
+  try {
+    uni.setKeepScreenOn({ keepScreenOn: false })
+  } catch (e) {
+    // Non-fatal — worst case the screen just stays on a bit longer.
+  }
 }
 
 export function stopRecording() {
