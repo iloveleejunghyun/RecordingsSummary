@@ -31,6 +31,7 @@ import { getRecordings, createRecording, addSegment, getAIConsent } from '@/util
 import { uid } from '@/utils/id.js'
 import { transcribeSegment, finishRecordingSession } from '@/utils/pipeline.js'
 import { trackRecordingCompleted } from '@/utils/analytics.js'
+import { statusLabel as formatStatusLabel } from '@/utils/format.js'
 
 // A recording is captured as a sequence of ~1 minute segments rather than
 // one long file — uni's RecorderManager can only run one recording at a
@@ -214,14 +215,7 @@ export default {
       return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     },
     statusLabel(r) {
-      switch (r.status) {
-        case 'recording': return 'Recording…'
-        case 'transcribing': return 'Transcribing…'
-        case 'summarizing': return 'Summarizing…'
-        case 'done': return 'Done'
-        case 'failed': return `Failed (${r.failureStage || 'unknown'})`
-        default: return r.status
-      }
+      return formatStatusLabel(r)
     }
   }
 }

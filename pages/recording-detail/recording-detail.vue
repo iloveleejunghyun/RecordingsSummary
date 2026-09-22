@@ -6,12 +6,8 @@
       <text>{{ isPlaying ? '⏸ Pause' : '▶ Play Recording' }}</text>
     </view>
 
-    <view v-if="recording.status === 'recording'" class="pending">
-      <text>Recording…</text>
-    </view>
-
-    <view v-else-if="recording.status === 'transcribing' || recording.status === 'summarizing'" class="pending">
-      <text>{{ recording.status === 'transcribing' ? 'Transcribing…' : 'Summarizing…' }}</text>
+    <view v-if="['recording', 'transcribing', 'summarizing'].includes(recording.status)" class="pending">
+      <text>{{ statusLabel(recording) }}</text>
     </view>
 
     <view v-else-if="recording.status === 'failed'" class="failed">
@@ -43,6 +39,7 @@ import { getRecordingById, deleteRecording } from '@/utils/storage.js'
 import { deleteAudioFile } from '@/utils/audioStore.js'
 import { retryRecording } from '@/utils/pipeline.js'
 import { trackSummaryViewed } from '@/utils/analytics.js'
+import { statusLabel as formatStatusLabel } from '@/utils/format.js'
 
 const PENDING_STATUSES = ['recording', 'transcribing', 'summarizing']
 
@@ -175,6 +172,9 @@ export default {
     formatDate(iso) {
       const d = new Date(iso)
       return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    },
+    statusLabel(recording) {
+      return formatStatusLabel(recording)
     }
   }
 }
