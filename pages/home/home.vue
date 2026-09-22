@@ -63,6 +63,7 @@ export default {
   onUnload() {
     this.stopTimer()
     this.stopPolling()
+    uni.$off('recordings-changed', this.loadRecordings)
   },
   mounted() {
     setRecorderHandlers({
@@ -71,6 +72,9 @@ export default {
       onError: this.onRecorderError
     })
     this.loadRecordings()
+    // Catches changes polling wouldn't (e.g. a background auto-retry on a
+    // recording that's already 'failed' — see storage.js's saveRecordings).
+    uni.$on('recordings-changed', this.loadRecordings)
   },
   methods: {
     loadRecordings() {

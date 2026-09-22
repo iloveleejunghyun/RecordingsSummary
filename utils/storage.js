@@ -28,6 +28,14 @@ export function getRecordings() {
 
 function saveRecordings(recordings) {
   uni.setStorageSync(RECORDINGS_KEY, recordings)
+  // Every mutation (create/addSegment/updateSegment/updateRecording/delete)
+  // funnels through this one function, so this is the single point that
+  // needs to notify open pages — otherwise a background retry (e.g. from
+  // recoverAndRetryAll after connectivity returns) on a recording that's
+  // already 'failed' would update silently: 'failed' isn't in either page's
+  // PENDING_STATUSES, so nothing would be polling it, and the screen would
+  // keep showing the old status until the user navigated away and back.
+  uni.$emit('recordings-changed')
 }
 
 export function getRecordingById(id) {

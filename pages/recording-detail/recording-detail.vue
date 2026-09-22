@@ -56,9 +56,11 @@ export default {
   onLoad(query) {
     this.id = query.id
     this.load()
+    uni.$on('recordings-changed', this.refreshFromStorage)
   },
   onUnload() {
     this.stopPolling()
+    uni.$off('recordings-changed', this.refreshFromStorage)
     if (this._audioCtx) {
       this._audioCtx.destroy()
       this._audioCtx = null
@@ -124,22 +126,27 @@ export default {
         this._audioCtx.play()
       }
     },
+    // Shared by the poll tick and the 'recordings-changed' event (see
+    // storage.js's saveRecordings) — the event catches updates polling
+    // wouldn't, e.g. a background auto-retry on a recording that's already
+    // 'failed' (not in PENDING_STATUSES, so nothing would be polling it).
+    refreshFromStorage() {
+      this.recording = getRecordingById(this.id)
+      if (!this.recording) {
+        this.stopPolling()
+        return
+      }
+      this.refreshSegmentPaths()
+      if (!PENDING_STATUSES.includes(this.recording.status)) {
+        this.stopPolling()
+        if (this.recording.status === 'done') {
+          trackSummaryViewed()
+        }
+      }
+    },
     startPolling() {
       if (this.pollHandle) return
-      this.pollHandle = setInterval(() => {
-        this.recording = getRecordingById(this.id)
-        if (!this.recording) {
-          this.stopPolling()
-          return
-        }
-        this.refreshSegmentPaths()
-        if (!PENDING_STATUSES.includes(this.recording.status)) {
-          this.stopPolling()
-          if (this.recording.status === 'done') {
-            trackSummaryViewed()
-          }
-        }
-      }, 2000)
+      this.pollHandle = setInterval(this.refreshFromStorage, 2000)
     },
     stopPolling() {
       if (this.pollHandle) {

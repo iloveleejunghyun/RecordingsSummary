@@ -9,7 +9,7 @@
 
 import { recognizeAudio } from '@/services/asr.js'
 import { summarizeRecording } from '@/services/ai.js'
-import { getRecordingById, updateRecording, updateSegment } from '@/utils/storage.js'
+import { getRecordings, getRecordingById, updateRecording, updateSegment, deleteRecording } from '@/utils/storage.js'
 import { trackTranscriptionResult, trackSummaryResult } from '@/utils/analytics.js'
 
 /**
@@ -119,5 +119,49 @@ export async function retryRecording(recordingId) {
 
   if (recording.failureStage === 'summary') {
     await summarizeFinishedRecording(recordingId)
+  }
+}
+
+/**
+ * Sweeps every recording in storage and un-sticks anything left over from a
+ * session that ended abnormally (app force-quit, crashed, or killed by the
+ * OS) — none of these leave a trace in memory, so nothing would otherwise
+ * ever notice or retry them:
+ * - A segment stuck at 'transcribing': the in-flight recognizeAudio() call
+ *   that would have updated it no longer exists, so it would sit there
+ *   forever. Treated as failed so the normal retry path below picks it up.
+ * - A recording stuck at 'recording': the app died before the user tapped
+ *   Stop, so no more segments are ever coming. Finalized with whatever was
+ *   captured before that happened — or deleted outright if it crashed
+ *   before capturing any segment at all (nothing to salvage).
+ * - A recording stuck at 'summarizing': the in-flight summarize call is
+ *   gone the same way: retried directly.
+ * - Anything already 'failed' (from a genuine error, not just a crash):
+ *   retried the normal way.
+ *
+ * Safe to call anytime, including redundantly (e.g. network status flaps
+ * rapidly) — recordings with nothing to do here (done, or genuinely still
+ * in progress in this session) are untouched or no-op harmlessly.
+ */
+export async function recoverAndRetryAll() {
+  const recordings = getRecordings()
+  for (const recording of recordings) {
+    recording.segments
+      .filter(s => s.status === 'transcribing')
+      .forEach(s => updateSegment(recording.id, s.id, { status: 'failed' }))
+
+    if (recording.status === 'recording') {
+      if (recording.segments.length === 0) {
+        // Crashed before capturing anything at all — no audio, no
+        // transcript, nothing to salvage or show the user.
+        deleteRecording(recording.id)
+      } else {
+        await finishRecordingSession(recording.id)
+      }
+    } else if (recording.status === 'summarizing') {
+      await summarizeFinishedRecording(recording.id)
+    } else {
+      await retryRecording(recording.id)
+    }
   }
 }
