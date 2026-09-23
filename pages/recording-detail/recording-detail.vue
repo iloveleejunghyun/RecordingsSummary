@@ -19,11 +19,17 @@
 
     <view v-else class="content">
       <view class="section">
-        <text class="section-title">Summary</text>
+        <view class="section-header">
+          <text class="section-title">Summary</text>
+          <text class="copy-link" @click="copySummary">Copy</text>
+        </view>
         <text class="section-body">{{ recording.summary }}</text>
       </view>
       <view class="section">
-        <text class="section-title" @click="showTranscript = !showTranscript">Transcript {{ showTranscript ? '▲' : '▼' }}</text>
+        <view class="section-header">
+          <text class="section-title" @click="showTranscript = !showTranscript">Transcript {{ showTranscript ? '▲' : '▼' }}</text>
+          <text v-if="showTranscript" class="copy-link" @click="copyTranscript">Copy</text>
+        </view>
         <text v-if="showTranscript" class="section-body transcript">{{ recording.transcript || '(no speech detected)' }}</text>
       </view>
     </view>
@@ -159,6 +165,18 @@ export default {
       this.recording = getRecordingById(this.id) // pick up the immediate status flip
       this.startPolling()
     },
+    copySummary() {
+      uni.setClipboardData({
+        data: this.recording.summary,
+        success: () => uni.showToast({ title: 'Summary copied', icon: 'none' })
+      })
+    },
+    copyTranscript() {
+      uni.setClipboardData({
+        data: this.recording.transcript,
+        success: () => uni.showToast({ title: 'Transcript copied', icon: 'none' })
+      })
+    },
     remove() {
       uni.showModal({
         title: 'Delete this recording?',
@@ -223,12 +241,21 @@ export default {
   border-radius: 12rpx;
   padding: 24rpx;
 }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
 .section-title {
   display: block;
   font-size: 26rpx;
   font-weight: 600;
   color: #222;
-  margin-bottom: 12rpx;
+}
+.copy-link {
+  font-size: 22rpx;
+  color: #F97316;
 }
 .section-body {
   display: block;
