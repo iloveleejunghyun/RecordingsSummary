@@ -63,33 +63,52 @@ async function chatCompletion(messages, temperature = 0.3, label = 'ai') {
   return content
 }
 
+// Models sometimes wrap JSON in prose or ```json fences — pull out the
+// first {...} block rather than trusting content to be pure JSON.
+function extractJSON(text) {
+  const match = text.match(/\{[\s\S]*\}/)
+  if (!match) throw new AIServiceUnavailableError(`AI response was not valid JSON: ${text}`)
+  try {
+    return JSON.parse(match[0])
+  } catch (e) {
+    throw new AIServiceUnavailableError(`Failed to parse AI JSON response: ${e.message}`)
+  }
+}
+
 /**
- * Turn a raw ASR transcript into a readable summary. Combines noise
- * correction and summarization into a single pass for Build 1 — the ASR
- * transcript may contain misheard words or garbled fragments (background
- * noise, cross-talk), so the summary should read as the speaker's intended
- * meaning, not a literal transcription of ASR errors.
+ * Correct a raw ASR transcript and summarize it, in one call. The ASR
+ * transcript may contain misheard words, garbled fragments, or missing
+ * punctuation because of background noise or unclear audio; the corrected
+ * transcript is a distinct, user-facing artifact (several users have hit
+ * the raw transcript being hard to read), and the summary is grounded in
+ * that same corrected reading rather than the raw text a second time.
  * @param {string} transcript - raw text from services/asr.js
- * @returns {Promise<string>} the summary text
- * @throws {AIServiceUnavailableError} when the service isn't configured or the call fails
+ * @returns {Promise<{ correctedTranscript: string, summary: string }>}
+ * @throws {AIServiceUnavailableError} when the service isn't configured, the call fails, or the response isn't valid JSON
  */
-export async function summarizeRecording(transcript) {
-  const prompt = `You are a notes assistant. Below is a raw speech-to-text transcript of a recorded conversation, meeting, or lecture. The transcript may contain mistranscribed words, garbled fragments, or missing punctuation because of background noise or unclear audio.
+export async function correctAndSummarize(transcript) {
+  const prompt = `You are a notes assistant. Below is a raw speech-to-text transcript of a recorded conversation, meeting, or lecture. It may contain mistranscribed words, garbled fragments, or missing punctuation because of background noise or unclear audio.
 
-Your job:
-1. Read past likely transcription errors and infer the speaker's actual intended meaning where reasonably confident — don't preserve obvious ASR garbage literally, but never invent content that isn't grounded in the transcript.
-2. Produce a concise summary as bullet points (each starting with "- " on its own line) covering the key points, decisions, and action items actually present in the transcript.
-3. If the transcript is empty or contains no discernible content, say so plainly instead of fabricating a summary.
+Do two things with it:
+1. correctedTranscript: fix likely mishearings and infer the speaker's actual intended words where reasonably confident (never invent content not grounded in the original), add reasonable punctuation and paragraph breaks for readability, and preserve the full content — this is a correction pass, not a summary, so don't shorten, condense, or omit anything.
+2. summary: a concise summary as bullet points (each starting with "- " on its own line) covering the key points, decisions, and action items actually present, based on your corrected reading of the transcript. Keep it under 250 words.
 
-Keep the summary under 250 words. Output only the summary text directly, no prefix, explanation, or phrases like "here is the summary."
+If the transcript is empty or contains no discernible content, set correctedTranscript to the original transcript unchanged and summary to a plain statement that there's nothing to summarize — don't fabricate either one.
 
-Transcript:
+Output only a JSON object, nothing else, in this exact format:
+{"correctedTranscript": "...", "summary": "..."}
+
+Raw transcript:
 """
 ${transcript}
 """`
 
-  const content = await chatCompletion([{ role: 'user', content: prompt }], 0.3, 'summarizeRecording')
-  return content.trim()
+  const content = await chatCompletion([{ role: 'user', content: prompt }], 0.2, 'correctAndSummarize')
+  const parsed = extractJSON(content)
+  if (typeof parsed.correctedTranscript !== 'string' || typeof parsed.summary !== 'string') {
+    throw new AIServiceUnavailableError(`AI JSON response missing expected fields: ${content}`)
+  }
+  return { correctedTranscript: parsed.correctedTranscript, summary: parsed.summary }
 }
 
 export { AIServiceUnavailableError }

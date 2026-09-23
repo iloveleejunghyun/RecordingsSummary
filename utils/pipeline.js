@@ -8,7 +8,7 @@
 // in order and summarized as a whole.
 
 import { recognizeAudio } from '@/services/asr.js'
-import { summarizeRecording } from '@/services/ai.js'
+import { correctAndSummarize } from '@/services/ai.js'
 import { getRecordings, getRecordingById, updateRecording, updateSegment, deleteRecording } from '@/utils/storage.js'
 import { trackTranscriptionResult, trackSummaryResult } from '@/utils/analytics.js'
 
@@ -37,9 +37,9 @@ export async function transcribeSegment(recordingId, segment) {
 }
 
 /**
- * Re-run the whole-recording summary from its already-concatenated
- * transcript — used both by the normal finalize path and by retrying a
- * recording that failed specifically at the summary step.
+ * Re-run correction + summary from the recording's already-concatenated raw
+ * transcript, in one AI call — used both by the normal finalize path and by
+ * retrying a recording that failed specifically at this step.
  * @param {string} recordingId
  */
 export async function summarizeFinishedRecording(recordingId) {
@@ -47,8 +47,8 @@ export async function summarizeFinishedRecording(recordingId) {
   if (!recording) return
   updateRecording(recordingId, { status: 'summarizing', failureStage: null })
   try {
-    const summary = await summarizeRecording(recording.transcript)
-    updateRecording(recordingId, { summary, status: 'done', failureStage: null })
+    const { correctedTranscript, summary } = await correctAndSummarize(recording.transcript)
+    updateRecording(recordingId, { correctedTranscript, summary, status: 'done', failureStage: null })
     trackSummaryResult({ success: true })
   } catch (e) {
     updateRecording(recordingId, { status: 'failed', failureStage: 'summary' })

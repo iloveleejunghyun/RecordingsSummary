@@ -27,10 +27,17 @@
       </view>
       <view class="section">
         <view class="section-header">
-          <text class="section-title" @click="showTranscript = !showTranscript">Transcript {{ showTranscript ? '▲' : '▼' }}</text>
-          <text v-if="showTranscript" class="copy-link" @click="copyTranscript">Copy</text>
+          <text class="section-title" @click="showCorrected = !showCorrected">Corrected Transcript {{ showCorrected ? '▲' : '▼' }}</text>
+          <text v-if="showCorrected" class="copy-link" @click="copyCorrectedTranscript">Copy</text>
         </view>
-        <text v-if="showTranscript" class="section-body transcript">{{ recording.transcript || '(no speech detected)' }}</text>
+        <text v-if="showCorrected" class="section-body transcript">{{ displayedTranscript || '(no speech detected)' }}</text>
+      </view>
+      <view class="section">
+        <view class="section-header">
+          <text class="section-title" @click="showOriginal = !showOriginal">Original Transcript {{ showOriginal ? '▲' : '▼' }}</text>
+          <text v-if="showOriginal" class="copy-link" @click="copyOriginalTranscript">Copy</text>
+        </view>
+        <text v-if="showOriginal" class="section-body transcript">{{ recording.transcript || '(no speech detected)' }}</text>
       </view>
     </view>
 
@@ -54,9 +61,19 @@ export default {
     return {
       id: null,
       recording: null,
-      showTranscript: false,
+      showCorrected: false,
+      showOriginal: false,
       pollHandle: null,
       isPlaying: false
+    }
+  },
+  computed: {
+    // Used for the Corrected Transcript section — falls back to the raw
+    // transcript for recordings made before correctedTranscript existed.
+    // The Original Transcript section always shows recording.transcript
+    // directly, regardless of this fallback.
+    displayedTranscript() {
+      return this.recording.correctedTranscript || this.recording.transcript
     }
   },
   onLoad(query) {
@@ -171,10 +188,16 @@ export default {
         success: () => uni.showToast({ title: 'Summary copied', icon: 'none' })
       })
     },
-    copyTranscript() {
+    copyCorrectedTranscript() {
+      uni.setClipboardData({
+        data: this.displayedTranscript,
+        success: () => uni.showToast({ title: 'Corrected transcript copied', icon: 'none' })
+      })
+    },
+    copyOriginalTranscript() {
       uni.setClipboardData({
         data: this.recording.transcript,
-        success: () => uni.showToast({ title: 'Transcript copied', icon: 'none' })
+        success: () => uni.showToast({ title: 'Original transcript copied', icon: 'none' })
       })
     },
     remove() {

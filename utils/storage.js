@@ -58,7 +58,8 @@ export function createRecording({ id }) {
     segments: [],
     status: 'recording', // 'recording' | 'transcribing' | 'summarizing' | 'done' | 'failed'
     failureStage: null,  // 'asr' | 'summary' | null
-    transcript: '',
+    transcript: '',          // raw ASR output, joined across segments
+    correctedTranscript: '', // AI-cleaned version — see services/ai.js's correctAndSummarize
     summary: ''
   }
   recordings.unshift(recording)
