@@ -112,7 +112,15 @@ export async function retryRecording(recordingId) {
 
   const failedSegments = recording.segments.filter(s => s.status === 'failed')
   if (failedSegments.length > 0) {
-    updateRecording(recordingId, { status: 'transcribing', failureStage: null })
+    // Only force the overall status to 'transcribing' if the recording has
+    // actually stopped growing. If it's still 'recording' (more segments
+    // may still be coming from an active session), leave that alone —
+    // retrying these segments must not make it look/behave like the
+    // session already ended. transcribeSegment's own maybeFinalizeRecording
+    // call already correctly no-ops while status stays 'recording'.
+    if (recording.status !== 'recording') {
+      updateRecording(recordingId, { status: 'transcribing', failureStage: null })
+    }
     await Promise.all(failedSegments.map(s => transcribeSegment(recordingId, s)))
     return
   }
@@ -123,10 +131,10 @@ export async function retryRecording(recordingId) {
 }
 
 /**
- * Sweeps every recording in storage and un-sticks anything left over from a
- * session that ended abnormally (app force-quit, crashed, or killed by the
- * OS) — none of these leave a trace in memory, so nothing would otherwise
- * ever notice or retry them:
+ * Full sweep that un-sticks anything left over from a session that ended
+ * abnormally (app force-quit, crashed, or killed by the OS) — none of these
+ * leave a trace in memory, so nothing would otherwise ever notice or retry
+ * them:
  * - A segment stuck at 'transcribing': the in-flight recognizeAudio() call
  *   that would have updated it no longer exists, so it would sit there
  *   forever. Treated as failed so the normal retry path below picks it up.
@@ -139,11 +147,14 @@ export async function retryRecording(recordingId) {
  * - Anything already 'failed' (from a genuine error, not just a crash):
  *   retried the normal way.
  *
- * Safe to call anytime, including redundantly (e.g. network status flaps
- * rapidly) — recordings with nothing to do here (done, or genuinely still
- * in progress in this session) are untouched or no-op harmlessly.
+ * ONLY safe to call at true app cold start (App.vue's onLaunch), before any
+ * page has mounted — that's what guarantees a 'recording' status found here
+ * really is orphaned rather than a session genuinely in progress right now.
+ * Calling this from anything that can fire mid-session (e.g. a network
+ * reconnect event) would wrongly finalize a recording that's still actively
+ * growing. Use retryAllFailed for anytime-safe retries instead.
  */
-export async function recoverAndRetryAll() {
+export async function recoverOrphanedSessions() {
   const recordings = getRecordings()
   for (const recording of recordings) {
     recording.segments
@@ -161,6 +172,23 @@ export async function recoverAndRetryAll() {
     } else if (recording.status === 'summarizing') {
       await summarizeFinishedRecording(recording.id)
     } else {
+      await retryRecording(recording.id)
+    }
+  }
+}
+
+/**
+ * Retries anything already terminally 'failed' — safe to call anytime,
+ * including while a recording is actively in progress, since it never
+ * touches a recording whose overall status is still 'recording' (only its
+ * individual failed segments, via retryRecording, which itself knows not to
+ * disturb that status). This is what network-reconnect should trigger.
+ */
+export async function retryAllFailed() {
+  const recordings = getRecordings()
+  for (const recording of recordings) {
+    const hasFailedSegments = recording.segments.some(s => s.status === 'failed')
+    if (hasFailedSegments || recording.failureStage === 'summary') {
       await retryRecording(recording.id)
     }
   }

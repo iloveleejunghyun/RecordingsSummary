@@ -26,7 +26,22 @@ export function statusLabel(recording) {
   switch (recording.status) {
     case 'summarizing': return 'Summarizing…'
     case 'done': return 'Done'
-    case 'failed': return `Failed (${recording.failureStage || 'unknown'})`
+    case 'failed': {
+      const stage = recording.failureStage || 'unknown'
+      if (stage === 'asr') {
+        // A stopped, settled recording with any failed segment shows
+        // 'failed' overall (see pipeline.js's maybeFinalizeRecording) even
+        // when most segments actually succeeded — "Transcribing X/Y" alone
+        // would be misleading here (nothing is still in progress, it's
+        // stuck until a retry), but a bare "Failed" risks reading as "all
+        // of it is lost" when it usually isn't. Show both: this needs your
+        // attention, and here's how much is actually salvaged already.
+        const segments = recording.segments || []
+        const done = segments.filter(s => s.status === 'done').length
+        return `Failed (asr) — ${done}/${segments.length} transcribed`
+      }
+      return `Failed (${stage})`
+    }
     default: return recording.status
   }
 }
