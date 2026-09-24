@@ -3,6 +3,14 @@
     <ai-consent-gate />
 
     <view class="record-area">
+      <view class="info-banner" v-if="!isRecording">
+        <text class="info-banner-title">Built to prevent lost recordings.</text>
+        <text class="info-banner-body">Automatic recovery avoids endless processing when something goes wrong.</text>
+      </view>
+      <view class="info-banner warning" v-else>
+        <text class="info-banner-title">Keep this screen open</text>
+        <text class="info-banner-body">Switching apps or locking the phone may interrupt recording.</text>
+      </view>
       <view class="timer" v-if="isRecording">{{ formatDuration(elapsedSec) }} / {{ formatDuration(MAX_SESSION_SEC) }}</view>
       <view class="record-btn" :class="{ recording: isRecording }" @click="toggleRecording">
         <text>{{ isRecording ? 'Stop' : 'Record' }}</text>
@@ -262,6 +270,38 @@ export default {
   margin-top: 20rpx;
   font-size: 22rpx;
   color: #999;
+}
+.info-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32rpx;
+  padding: 20rpx 28rpx;
+  border-radius: 12rpx;
+  text-align: center;
+  max-width: 600rpx;
+  background: #FFF7ED;
+}
+.info-banner-title {
+  font-size: 27rpx;
+  font-weight: 700;
+  color: #9A5B1F;
+  margin-bottom: 6rpx;
+}
+.info-banner-body {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #B08355;
+  line-height: 1.5;
+}
+.info-banner.warning {
+  background: #FDEDED;
+}
+.info-banner.warning .info-banner-title {
+  color: #B3372E;
+}
+.info-banner.warning .info-banner-body {
+  color: #C56862;
 }
 .list {
   margin-top: 24rpx;
