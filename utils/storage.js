@@ -60,7 +60,8 @@ export function createRecording({ id }) {
     failureStage: null,  // 'asr' | 'summary' | null
     transcript: '',          // raw ASR output, joined across segments
     correctedTranscript: '', // AI-cleaned version — see services/ai.js's correctAndSummarize
-    summary: ''
+    summary: '',
+    mergedAudioPath: null // set once by pipeline.js after summarizing — see utils/audioStore.js's mergeSegments
   }
   recordings.unshift(recording)
   saveRecordings(recordings)

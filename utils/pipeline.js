@@ -9,6 +9,7 @@
 
 import { recognizeAudio } from '@/services/asr.js'
 import { correctAndSummarize } from '@/services/ai.js'
+import { mergeSegments } from '@/utils/audioStore.js'
 import { getRecordings, getRecordingById, updateRecording, updateSegment, deleteRecording } from '@/utils/storage.js'
 import { trackTranscriptionResult, trackSummaryResult } from '@/utils/analytics.js'
 
@@ -50,9 +51,43 @@ export async function summarizeFinishedRecording(recordingId) {
     const { correctedTranscript, summary } = await correctAndSummarize(recording.transcript)
     updateRecording(recordingId, { correctedTranscript, summary, status: 'done', failureStage: null })
     trackSummaryResult({ success: true })
+    await mergeRecordingAudio(recordingId)
   } catch (e) {
     updateRecording(recordingId, { status: 'failed', failureStage: 'summary' })
     trackSummaryResult({ success: false, errorMessage: e.message })
+  }
+}
+
+/**
+ * Merges a finished recording's segment files into one file, for replay and
+ * export (see utils/audioStore.js's mergeSegments for why byte-level
+ * concatenation is safe here). Runs once, after summarization succeeds, so
+ * merging never delays getting the transcript/summary in front of the user.
+ * Best-effort and non-blocking: a failure here must never affect the
+ * recording's 'done' status (already set by the caller) — recording-detail.vue
+ * falls back to playing segments back-to-back whenever mergedAudioPath is
+ * absent, so nothing is lost, just the single-file convenience.
+ * @param {string} recordingId
+ */
+async function mergeRecordingAudio(recordingId) {
+  const recording = getRecordingById(recordingId)
+  if (!recording || recording.segments.length === 0) {
+    console.log('Audio merge skipped (no recording/segments):', recordingId)
+    return
+  }
+  console.log('Audio merge starting:', recordingId, 'segments:', recording.segments.length)
+  try {
+    const paths = recording.segments.map(s => s.audioFilePath)
+    // A stuck plus.io native callback would otherwise hang this forever with
+    // no error — race it against a timeout so a hang is at least visible.
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('merge timed out after 20s')), 20000))
+    const mergedAudioPath = await Promise.race([mergeSegments(paths, recordingId), timeout])
+    updateRecording(recordingId, { mergedAudioPath })
+    console.log('Audio merge succeeded:', recordingId, mergedAudioPath)
+  } catch (e) {
+    // e may be a plain plus.io error object (no .message), so log the
+    // whole thing rather than risk logging "undefined".
+    console.error('Audio merge failed:', recordingId, e && e.message ? e.message : JSON.stringify(e))
   }
 }
 

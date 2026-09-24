@@ -2,8 +2,12 @@
   <view class="page" v-if="recording">
     <text class="date">{{ formatDate(recording.createdAt) }} · {{ formatDuration(recording.durationSec) }}</text>
 
-    <view v-if="recording.segments && recording.segments.length > 0" class="btn play" @click="togglePlay">
+    <view v-if="recording.mergedAudioPath" class="btn play" @click="togglePlay">
       <text>{{ isPlaying ? '⏸ Pause' : '▶ Play Recording' }}</text>
+    </view>
+
+    <view v-if="recording.mergedAudioPath" class="btn export" @click="exportRecording">
+      <text>Export Recording</text>
     </view>
 
     <view v-if="['recording', 'transcribing', 'summarizing'].includes(recording.status)" class="pending">
@@ -114,24 +118,15 @@ export default {
     },
     setupAudio() {
       // Lets you confirm the mic actually captured sound even when a
-      // transcript comes back empty — plays the raw segment files
-      // directly, independent of ASR/AI results. Segments play back to
-      // back in order, advancing automatically as each one ends.
-      this._segmentIndex = 0
+      // transcript comes back empty — plays the merged single-file
+      // recording directly (see pipeline.js's mergeRecordingAudio),
+      // independent of ASR/AI results. No fallback to the separate segment
+      // files: if mergedAudioPath isn't set, there's nothing to play.
       this._audioCtx = uni.createInnerAudioContext()
       this._audioCtx.onPlay(() => { this.isPlaying = true })
       this._audioCtx.onPause(() => { this.isPlaying = false })
       this._audioCtx.onStop(() => { this.isPlaying = false })
-      this._audioCtx.onEnded(() => {
-        this._segmentIndex += 1
-        if (this._segmentIndex < this._segmentPaths.length) {
-          this._audioCtx.src = this._segmentPaths[this._segmentIndex]
-          this._audioCtx.play()
-        } else {
-          this.isPlaying = false
-          this._segmentIndex = 0
-        }
-      })
+      this._audioCtx.onEnded(() => { this.isPlaying = false })
       this._audioCtx.onError(err => {
         this.isPlaying = false
         uni.showToast({ title: 'Could not play recording', icon: 'none' })
@@ -139,15 +134,26 @@ export default {
       })
     },
     togglePlay() {
-      if (!this._audioCtx || this._segmentPaths.length === 0) return
+      if (!this._audioCtx || !this.recording.mergedAudioPath) return
       if (this.isPlaying) {
         this._audioCtx.pause()
       } else {
-        if (!this._audioCtx.src) {
-          this._audioCtx.src = this._segmentPaths[this._segmentIndex]
+        if (this._audioCtx.src !== this.recording.mergedAudioPath) {
+          this._audioCtx.src = this.recording.mergedAudioPath
         }
         this._audioCtx.play()
       }
+    },
+    exportRecording() {
+      if (!this.recording.mergedAudioPath) return
+      plus.share.sendWithSystem(
+        { type: 'file', href: this.recording.mergedAudioPath },
+        () => {},
+        err => {
+          uni.showToast({ title: 'Could not export recording', icon: 'none' })
+          console.error('Export failed:', err)
+        }
+      )
     },
     // Shared by the poll tick and the 'recordings-changed' event (see
     // storage.js's saveRecordings) — the event catches updates polling
@@ -306,6 +312,13 @@ export default {
   background: #fff;
   color: #F97316;
   border: 2rpx solid #F97316;
+  margin-top: 0;
+  margin-bottom: 24rpx;
+}
+.btn.export {
+  background: #fff;
+  color: #666;
+  border: 2rpx solid #ddd;
   margin-top: 0;
   margin-bottom: 24rpx;
 }
