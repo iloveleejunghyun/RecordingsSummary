@@ -2,12 +2,11 @@
   <view class="page" v-if="recording">
     <text class="date">{{ formatDate(recording.createdAt) }} · {{ formatDuration(recording.durationSec) }}</text>
 
-    <view v-if="recording.mergedAudioPath" class="btn play" @click="togglePlay">
-      <text>{{ isPlaying ? '⏸ Pause' : '▶ Play Recording' }}</text>
-    </view>
-
-    <view v-if="recording.mergedAudioPath" class="btn export" @click="exportRecording">
-      <text>Export Recording</text>
+    <view v-if="recording.mergedAudioPath" class="playback-row">
+      <view class="btn play" @click="togglePlay">
+        <text>{{ isPlaying ? '⏸ Pause' : '▶ Play Recording' }}</text>
+      </view>
+      <text class="export-link" @click="exportRecording">Export</text>
     </view>
 
     <view v-if="['recording', 'transcribing', 'summarizing'].includes(recording.status)" class="pending">
@@ -308,19 +307,23 @@ export default {
   background: #F97316;
   color: #fff;
 }
+.playback-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
 .btn.play {
+  flex: 1;
   background: #fff;
   color: #F97316;
   border: 2rpx solid #F97316;
   margin-top: 0;
-  margin-bottom: 24rpx;
+  margin-bottom: 0;
 }
-.btn.export {
-  background: #fff;
-  color: #666;
-  border: 2rpx solid #ddd;
-  margin-top: 0;
-  margin-bottom: 24rpx;
+.export-link {
+  font-size: 24rpx;
+  color: #999;
 }
 .btn.danger {
   background: #fff;
