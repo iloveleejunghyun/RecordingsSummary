@@ -47,8 +47,8 @@ import { statusLabel as formatStatusLabel } from '@/utils/format.js'
 // utils/storage.js's file comments for why), so long recordings are built
 // by calling stop() then immediately start() again, over and over, each
 // cycle producing one complete, independently-uploadable segment file.
-const SEGMENT_SEC = 5      // rotate to a new segment file roughly this often
-const MAX_SESSION_SEC = 1800 // 30 min safety cap on total recording length
+const SEGMENT_SEC = 300      // rotate to a new segment file roughly this often
+const MAX_SESSION_SEC = 3600 // 60 min safety cap on total recording length
 const RECORDER_OPTIONS = { format: 'aac', sampleRate: 16000, encodeBitRate: 96000 }
 const PENDING_STATUSES = ['recording', 'transcribing', 'summarizing']
 

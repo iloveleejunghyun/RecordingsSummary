@@ -2,8 +2,8 @@
     "name" : "TalkSum",
     "appid" : "__UNI__9FC40FF",
     "description" : "Record a conversation, meeting, or lecture; get a reliable transcript and an AI summary back.",
-    "versionName" : "0.1.0",
-    "versionCode" : 1,
+    "versionName" : "0.1.1",
+    "versionCode" : 2,
     "transformPx" : false,
     "app-plus" : {
         "usingComponents" : true,
