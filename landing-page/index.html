@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>TalkSum — Free, Reliable AI Recording &amp; Summaries</title>
+<meta name="description" content="Record meetings, calls, or lectures and get instant AI summaries and clean transcripts — free, with built-in recovery so you never lose a recording.">
+<style>
+  :root {
+    --orange: #F97316;
+    --orange-dark: #F2660F;
+    --text: #222;
+    --text-muted: #767676;
+    --bg: #FFF9F3;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 40px 24px 56px;
+  }
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(242, 102, 15, 0.25);
+    margin-bottom: 12px;
+  }
+  .wordmark {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--orange);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-size: 30px;
+    line-height: 1.25;
+    margin: 0 0 12px;
+    text-align: center;
+  }
+  .subhead {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    text-align: center;
+    margin: 0 0 28px;
+  }
+  .cta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(242, 102, 15, 0.3);
+    margin-bottom: 8px;
+  }
+  .cta:active { background: var(--orange-dark); }
+  .cta-note {
+    text-align: center;
+    font-size: 12.5px;
+    color: #aaa;
+    margin: 0 0 40px;
+  }
+  .hero-shot {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 48px;
+    border-radius: 20px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--orange);
+    text-align: center;
+    margin: 0 0 8px;
+  }
+  .section-lead {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 32px;
+    line-height: 1.35;
+  }
+  .features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+  .feature-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .feature-card h3 {
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .feature-card p {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #444;
+    margin: 0;
+  }
+  .shots {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 4px 4px 16px;
+    margin: 0 -4px 40px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shots img {
+    flex: 0 0 auto;
+    width: 180px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+  .footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    margin: 0 8px;
+  }
+  .footer a:hover { color: var(--orange); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <img class="icon" alt="TalkSum" src="images/icon.png">
+    <div class="wordmark">TalkSum</div>
+  </header>
+
+  <div style="text-align:center">
+    <span class="badge">100% Free</span>
+  </div>
+  <h1>Never lose another recording</h1>
+  <p class="subhead">Record meetings, calls, or lectures. Get an AI summary and a clean transcript back — reliably, even when something goes wrong.</p>
+
+  <a class="cta" href="https://apps.apple.com/us/app/talksum/id6813722968">Download on the App Store</a>
+  <p class="cta-note">Free to use · iOS</p>
+
+  <img class="hero-shot" alt="TalkSum recording screen showing automatic recovery" src="images/shot-free.png">
+
+  <div class="section-title">Why TalkSum</div>
+  <p class="section-lead">Built so a bad connection never costs you a recording.</p>
+
+  <div class="features">
+    <div class="feature-card">
+      <h3>Automatic retry</h3>
+      <p>Long recordings are captured in reliable chunks. If one fails to upload, it quietly retries on its own — no lost recordings, no endless "processing" screens.</p>
+    </div>
+    <div class="feature-card">
+      <h3>AI summaries, instantly</h3>
+      <p>Every recording gets a concise summary of the key points, decisions, and action items — ready seconds after you stop recording.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Corrected transcripts</h3>
+      <p>Not just raw speech-to-text — an AI pass cleans up mishearings and punctuation, so the transcript actually reads like what was said.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Completely free</h3>
+      <p>No subscription, no paywall. Record, transcribe, and summarize at no cost.</p>
+    </div>
+  </div>
+
+  <div class="shots">
+    <img alt="Reliable chunked recording with automatic retry" src="images/shot-reliability.png">
+    <img alt="AI summary and corrected transcript" src="images/shot-summary.png">
+  </div>
+
+  <a class="cta" href="https://apps.apple.com/us/app/talksum/id6813722968">Download on the App Store</a>
+  <p class="cta-note">Free to use · iOS</p>
+
+  <div class="footer">
+    <div style="margin-bottom:10px">TalkSum · Beta</div>
+    <a href="t-privacy-policy.html">Privacy Policy</a>
+    ·
+    <a href="t-support.html">Support</a>
+  </div>
+
+</div>
+</body>
+</html>
