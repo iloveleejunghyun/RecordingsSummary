@@ -83,6 +83,26 @@
     box-shadow: 0 6px 18px rgba(249, 115, 22, 0.35);
   }
   .mail-btn:active { background: var(--orange-dark); }
+  .wa-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 15px;
+    border-radius: 14px;
+    background: #25D366;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .wa-btn:active { background: #1EBE5A; }
+  .wa-note {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 10px 0 0;
+    text-align: left;
+  }
   .faq {
     width: 100%;
     background: var(--card);
@@ -128,6 +148,8 @@
     <h2>Contact Us</h2>
     <p>Running into an issue, have a suggestion, or want to report a bug? Email us and we'll get back to you as soon as we can.</p>
     <a class="mail-btn" href="mailto:ilovejunghyun@yahoo.com?subject=TalkSum%20Feedback">Send Feedback by Email</a>
+    <a class="wa-btn" href="https://chat.whatsapp.com/JEpmb1pnrBT7kCRpl8G6rx">Help shape TalkSum on WhatsApp</a>
+    <p class="wa-note">Chat with the developer and vote on what gets built next. Group members can see each other's phone numbers.</p>
   </div>
 
   <div class="faq">
@@ -138,7 +160,7 @@
     </div>
     <div class="faq-item">
       <p class="q">Is there a recording length limit?</p>
-      <p class="a">During this beta, recordings are capped at 5 minutes so transcription stays fast and reliable. We're working on support for longer recordings.</p>
+      <p class="a">During this beta, recordings are capped at 60 minutes. Long recordings are captured in short chunks and transcribed as you go, so a failed upload only retries that chunk instead of losing the whole recording.</p>
     </div>
     <div class="faq-item">
       <p class="q">Do transcription and AI summaries need an internet connection?</p>

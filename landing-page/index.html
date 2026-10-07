@@ -150,6 +150,40 @@
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   }
+  .feedback-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 22px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    margin-bottom: 32px;
+  }
+  .feedback-card h3 {
+    font-size: 17px;
+    margin: 0 0 6px;
+  }
+  .feedback-card p {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: #444;
+    margin: 0 0 16px;
+  }
+  .wa-btn {
+    display: block;
+    padding: 14px;
+    border-radius: 14px;
+    background: #25D366;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .wa-btn:active { background: #1EBE5A; }
+  .feedback-card .wa-note {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 10px 0 0;
+  }
   .footer {
     text-align: center;
     font-size: 12px;
@@ -214,11 +248,18 @@
   <a class="cta" href="https://apps.apple.com/us/app/talksum/id6813722968">Download on the App Store</a>
   <p class="cta-note">Free to use · iOS</p>
 
+  <div class="feedback-card">
+    <h3>Built with its users</h3>
+    <p>Chat with the developer and vote on what gets built next.</p>
+    <a class="wa-btn" href="https://chat.whatsapp.com/JEpmb1pnrBT7kCRpl8G6rx">Help shape TalkSum on WhatsApp</a>
+    <p class="wa-note">Group members can see each other's phone numbers.</p>
+  </div>
+
   <div class="footer">
     <div style="margin-bottom:10px">TalkSum · Beta</div>
-    <a href="t-privacy-policy.html">Privacy Policy</a>
+    <a href="privacy-policy.html">Privacy Policy</a>
     ·
-    <a href="t-support.html">Support</a>
+    <a href="support.html">Support</a>
   </div>
 
 </div>

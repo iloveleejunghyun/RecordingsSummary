@@ -14,3 +14,11 @@ SerachResults-Malaysia:Spent $44.95 for 6,267 impressions, 68 taps, and 3 instal
 Total Devices: 41
 
 Created OpenAI ad. 10/5
+
+10/6
+SerachResults-Malaysia:Spent $52.46 for 6,659 impressions, 73 taps, and 5 installs, with a $10.49 CPA, $0.72 CPT, 1.10% CTR, and 6.85% conversion rate.
+Total Devices: 81
+30+ new devices?
+
+10/7
+Total Devices: 115

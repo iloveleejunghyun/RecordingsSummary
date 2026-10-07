@@ -28,6 +28,12 @@
         <text class="item-status" :class="'status-' + r.status">{{ statusLabel(r) }}</text>
       </view>
     </view>
+
+    <view class="community-bar" v-if="!isRecording">
+      <view class="community-btn" @click="openCommunity">
+        <text>Help shape TalkSum on WhatsApp</text>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -51,6 +57,7 @@ const SEGMENT_SEC = 300      // rotate to a new segment file roughly this often
 const MAX_SESSION_SEC = 3600 // 60 min safety cap on total recording length
 const RECORDER_OPTIONS = { format: 'aac', sampleRate: 16000, encodeBitRate: 96000 }
 const PENDING_STATUSES = ['recording', 'transcribing', 'summarizing']
+const COMMUNITY_URL = 'https://chat.whatsapp.com/JEpmb1pnrBT7kCRpl8G6rx'
 
 export default {
   components: { AiConsentGate },
@@ -214,6 +221,9 @@ export default {
         this.timerHandle = null
       }
     },
+    openCommunity() {
+      plus.runtime.openURL(COMMUNITY_URL)
+    },
     goToDetail(id) {
       uni.navigateTo({ url: `/pages/recording-detail/recording-detail?id=${id}` })
     },
@@ -236,6 +246,8 @@ export default {
 <style scoped>
 .page {
   padding: 32rpx;
+  padding-bottom: calc(160rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
 }
 .record-area {
   display: flex;
@@ -344,5 +356,29 @@ export default {
 }
 .item-status.status-failed {
   color: #DD524D;
+}
+.community-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #F5F5F5;
+  border-top: 2rpx solid #E8E8E8;
+}
+.community-btn {
+  padding: 20rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  border: 2rpx solid #F97316;
+  text-align: center;
+}
+.community-btn text {
+  color: #F97316;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 </style>
